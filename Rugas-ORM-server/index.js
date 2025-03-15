@@ -1,0 +1,50 @@
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db'); 
+const session = require('express-session'); 
+const MongoStore = require('connect-mongo'); 
+const authRoutes = require('./routes/auth');
+const customerRoutes = require('./routes/customers');
+const productRoutes = require('./routes/product');
+const orderRoutes = require('./routes/orders');
+
+dotenv.config(); 
+
+connectDB();
+
+
+const app = express();
+const port = process.env.PORT || 5000; 
+
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3001', 
+  credentials: true
+}));
+app.use(bodyParser.json()); 
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      ttl: 14 * 24 * 60 * 60 
+  }),
+  cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 14,
+      httpOnly: true,
+      sameSite: 'lax'
+  }
+}));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+
+app.listen(port, () => {
+  console.log(`Server is running on port: ${port}`);
+});
