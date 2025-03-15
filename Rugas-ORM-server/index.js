@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db'); 
 const session = require('express-session'); 
@@ -23,20 +24,21 @@ app.use(cors({
   credentials: true
 }));
 app.use(bodyParser.json()); 
+app.use(cookieParser());
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       ttl: 14 * 24 * 60 * 60 
   }),
   cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 14,
-      httpOnly: true,
-      sameSite: 'lax'
+      httpOnly: false,
+      sameSite: 'none'
   }
 }));
 
