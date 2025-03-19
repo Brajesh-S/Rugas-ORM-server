@@ -20,26 +20,37 @@ const app = express();
 const port = process.env.PORT || 5000; 
 
 app.use(cors({
-  origin: 'http://localhost:3001',
-  credentials: true
+  origin: [
+    'http://localhost:3001', 
+    'https://rugas-orm-client.onrender.com' 
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(bodyParser.json()); 
 app.use(cookieParser());
 
+app.set('trust proxy', 1);
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      ttl: 14 * 24 * 60 * 60 
+    mongoUrl: process.env.MONGO_URI,
+    ttl: 14 * 24 * 60 * 60 
   }),
   cookie: {
-      secure: true,
-      maxAge: 1000 * 60 * 60 * 24 * 14,
-      httpOnly: true,
-      sameSite: 'lax'
-  }
+    secure: true,
+    maxAge: 1000 * 60 * 60 * 24 * 14, // 14 days
+    httpOnly: true,
+    sameSite: 'none',
+    domain: process.env.NODE_ENV === 'production'
+      ? '.onrender.com' 
+      : undefined
+  },
+  proxy: true 
 }));
 
 app.use('/api/auth', authRoutes);
