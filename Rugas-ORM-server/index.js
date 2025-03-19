@@ -4,17 +4,14 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db'); 
-const session = require('express-session'); 
-const MongoStore = require('connect-mongo'); 
+const jwt = require('jsonwebtoken');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const productRoutes = require('./routes/product');
 const orderRoutes = require('./routes/orders');
 
 dotenv.config(); 
-
 connectDB();
-
 
 const app = express();
 const port = process.env.PORT || 5000; 
@@ -26,35 +23,32 @@ app.use(cors({
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin']
 }));
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.set('trust proxy', 1);
+const authMiddleware = (req, res, next) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'Authorization denied' });
+  }
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    ttl: 14 * 24 * 60 * 60 
-  }),
-  cookie: {
-    secure: true,
-    maxAge: 1000 * 60 * 60 * 24 * 14, // 14 days
-    httpOnly: true,
-    sameSite: 'none',
-    domain: 'onrender.com'
-  },
-  proxy: true 
-}));
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ message: 'Token is not valid' });
+  }
+};
 
 app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
+app.use('/api/customers', authMiddleware, customerRoutes);
+app.use('/api/products', authMiddleware, productRoutes);
+app.use('/api/orders', authMiddleware, orderRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);

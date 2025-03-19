@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
 const auth = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 router.post('/', auth, async (req, res) => {
   try {
@@ -32,7 +33,7 @@ router.get('/', auth, async (req, res) => {
     const matchStage = {};
 
     if (status) matchStage.status = status;
-    if (customer) matchStage.customer = mongoose.Types.ObjectId(customer);
+    if (customer) matchStage.customer = new mongoose.Types.ObjectId(customer);
 
     const pipeline = [
       {
