@@ -20,7 +20,7 @@ const app = express();
 const port = process.env.PORT || 5000; 
 
 app.use(cors({
-  origin: 'https://rugas-orm-client.onrender.com',
+  origin: 'http://localhost:3001',
   credentials: true
 }));
 app.use(bodyParser.json()); 
@@ -37,8 +37,8 @@ app.use(session({
   cookie: {
       secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 14,
-      httpOnly: false,
-      sameSite: 'none'
+      httpOnly: true,
+      sameSite: 'lax'
   }
 }));
 
