@@ -46,9 +46,6 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 14, // 14 days
     httpOnly: true,
     sameSite: 'none',
-    domain: process.env.NODE_ENV === 'production'
-      ? 'rugas-orm-server.onrender.com' 
-      : undefined
   },
   proxy: true 
 }));
