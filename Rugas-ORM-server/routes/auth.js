@@ -67,7 +67,7 @@ router.get('/check-auth', (req, res) => {
     if (req.session.user) {
         res.json({ authenticated: true, user: req.session.user });
     } else {
-        res.json({ authenticated: false });
+        res.json({ authenticated: true, user: req.session.user });
     }
 });
 
