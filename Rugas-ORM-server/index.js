@@ -47,7 +47,7 @@ app.use(session({
     httpOnly: true,
     sameSite: 'none',
     domain: process.env.NODE_ENV === 'production'
-      ? '.onrender.com' 
+      ? 'rugas-orm-server.onrender.com' 
       : undefined
   },
   proxy: true 
